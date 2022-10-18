@@ -1,0 +1,28 @@
+# Run with --extra-vars newpassword="new_password"
+
+---
+- hosts: all
+  become: yes
+  tasks:
+    - name: Change user password
+      user:
+        name: root
+        update_password: always
+        password: "{{ newpassword|password_hash('sha512') }}"
+
+    - name: Create user
+      ansible.builtin.user:
+        name: t_user
+        comment: Hello_There
+        uid: 1040
+        group: admin
+        password: "{{ newpassword|password_hash('sha512') }}"
+
+    - name: Change SSH port
+      lineinfile: dest=/etc/ssh/sshd_config
+        regexp='^#Port 22'
+        insertbefore=BOF
+        line='Port 1234'
+        
+    - name: Restart SSHD    
+      shell: service sshd restart

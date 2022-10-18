@@ -1,0 +1,25 @@
+#  Всю голову сломал, интерфейс bond0 создается, но через него не ходит трафик.
+#  С адресами и маршрутами все хорошо, tcpdump даже видит широковещание, arp не запонлняется
+#  ip neigh bond 0 FAILED
+#  Если дадите обратную связь где я накосячил, то буду очень признателен :)
+
+---
+- name: Ashan Test A
+  hosts: all
+  become: yes
+
+  tasks:
+     - name: Make sure ifenslave is installed
+       apt: pkg=ifenslave
+
+     - name: Make sure bonding is a kernel module in /etc/modules
+       template: src=modules dest=/etc/modules
+
+     - name: Make sure /etc/network/interfaces has the correct bonding configuration
+       template: backup=yes src=interfaces dest=/etc/network/interfaces
+
+     - name: Make sure we reboot after bonding the interfaces
+       shell: service networking restart
+
+     - name: Wait for the server to reply
+       wait_for: delay=3 port=22
